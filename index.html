@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实例1-ETC电子发票管理</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <h1 class="title">实例1 - ETC电子发票管理</h1>
+        <el-row>
+            <el-select v-model="value" style="width: 120px;" placeholder="请选择">
+                <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
+                </el-option>
+            </el-select>
+            <el-input v-model="input" style="width: 240px;" placeholder="请输入内容"></el-input>
+            <el-button type="primary" plain @click="query">查询</el-button>
+            <el-button type="primary" plain @click="download">下载</el-button>
+        </el-row>
+        <br>
+        <el-table ref="multipleTable" :data="index_list" :stripe=true :border=true tooltip-effect="drak"
+            style="width: 100%; color:#444;text-align: center;" @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="55"></el-table-column>
+            <el-table-column label="发票类型" width="120" prop="t1"></el-table-column>
+            <el-table-column label="项目名称" width="120" prop="pro_name"> </el-table-column>
+            <el-table-column label="发票代码" width="120" prop="code"> </el-table-column>
+            <el-table-column label="发票号码" width="120" prop="num"> </el-table-column>
+            <el-table-column label="日期" width="120" prop="date"> </el-table-column>
+            <el-table-column label="购买方名称" width="120" prop="client_name"> </el-table-column>
+            <el-table-column label="购买方税号" width="120" prop="client_itin"> </el-table-column>
+            <el-table-column label="销售方名称" width="120" prop="seller_name"> </el-table-column>
+            <el-table-column label="销售方税号" width="120" prop="seller_itin"> </el-table-column>
+            <el-table-column label="车牌号" width="120" prop="car_num"> </el-table-column>
+            <el-table-column label="车辆类型" width="120" prop="car_type"> </el-table-column>
+            <el-table-column label="总金额" width="120" prop="total_price"> </el-table-column>
+            <el-table-column label="金额" width="120" prop="price"> </el-table-column>
+            <el-table-column label="税率" width="120" prop="tax_rate"> </el-table-column>
+            <el-table-column label="税价" width="120" prop="tax_price"> </el-table-column>
+        </el-table>
+    </div>
+    <!-- <script src="./vue/vue.js"></script> -->
+    <script src="https://unpkg.com/vue@2.6.11/dist/vue.js"></script>
+    <script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
+    <script src="https://cdn.bootcss.com/qs/6.7.0/qs.min.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        var vm = new Vue(
+            {
+                el: '#app',
+                data: function () {
+                    return {
+                        visible: false,
+                        index_list: [],
+                        true: true,
+                        select_box: [],
+                        input: "",
+                        options: [
+                            { label: "项目名称", value: "pro_name" },
+                            { label: "发票代码", value: "code" },
+                            { label: "发票号码", value: "num" },
+                            { label: "年份", value: "year" },
+                            { label: "购买方名称", value: "client_name" },
+                            { label: "销售方名称", value: "seller_name" },
+                            { label: "车牌号", value: "car_num" },
+                            { label: "车辆类型", value: "car_type" },
+                        ],
+                        value: ""
+                    }
+                },
+                mounted() {
+                    this.data = this.get_index_info()
+                },
+                methods: {
+                    // 获取主页面列表数据
+                    get_index_info: async function () {
+                        // var info = await axios.get("http://127.0.0.1:5000/")
+                        var info = await axios.get("https://36l7827t57.zicp.fun")
+                        if (info.data.status == 200) {
+                            // 数据获取成功
+                            this.index_list = info.data.data
+                        } else {
+                            // 数据获取失败
+                            this.$message({
+                                    message: '数据获取失败了哦',
+                                    type: 'error'
+                                });
+                        }
+                    },
+                    // 选项发生改变触发事件
+                    handleSelectionChange: function (e) {
+                        this.select_box = []
+                        for (var i = 0; i < e.length; i++) {
+                            this.select_box.push(e[i].num)
+                        }
+                    },
+                    // 查询信息
+                    query: async function () {
+                        if (this.value == "" || this.input == "") {
+                            // 内容不能为空
+                            this.$message({
+                                message: '请先输入内容',
+                                type: 'warning'
+                            });
+                        } else {
+                            data = new FormData
+                            data.append("key", this.value)
+                            data.append("value", this.input)
+                            // var info = await axios.post("http://127.0.0.1:5000/query", data)
+                            var info = await axios.post("https://36l7827t57.zicp.fun", data)
+                            if (info.data.status = "200") {
+                                // 查询成功
+                                this.index_list = info.data.data
+                                this.$message({
+                                    message: "内容查询成功",
+                                    type: "success"
+                                })
+                            } else {
+                                // 查询失败
+                                this.$message({
+                                    message: '查询失败了哦',
+                                    type: 'error'
+                                });
+                            }
+                        }
+                    },
+                    // 下载文件
+                    download: async function () {
+                        if (this.select_box[0] == null) {
+                            // 未选中
+                            this.$message({
+                                message: '请先选择下载文件',
+                                type: 'warning'
+                            });
+                        } else {
+                            let data = new FormData();
+                            data.append('num', JSON.stringify(this.select_box))
+                            // var info = await axios.post("http://127.0.0.1:5000/download", data, { responseType: 'blob' })
+                            var info = await axios.post("https://36l7827t57.zicp.fun", data, { responseType: 'blob' })
+                            if (info.status == 200) {
+                                // 数据获取成功
+                                let fileName = "test." + info.headers['content-type'].split('/')[1]
+                                let url = window.URL.createObjectURL(new Blob([info.data], { type: info.headers['content-type'] }))
+                                const a = document.createElement('a')
+                                a.style.display = 'none'
+                                a.download = fileName
+                                a.href = url
+                                document.body.appendChild(a)
+                                a.click()
+                                if (document.body.contains(a)) {
+                                    document.body.removeChild(a)
+                                }
+                            } else {
+                                // 数据获取失败
+                                this.$message({
+                                    message: '哦吼？文件跑路了',
+                                    type: 'error'
+                                });
+                            }
+                        }
+
+                    }
+                }
+            }
+        )
+    </script>
+    <style>
+        body {
+            padding: 20px;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #eee;
+        }
+
+        #id {
+            text-align: center;
+            width: 100%;
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 400;
+            width: 80%;
+        }
+    </style>
+</body>
+
+</html>
